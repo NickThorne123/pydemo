@@ -2,40 +2,42 @@
 
 from scipy.io import loadmat
 import pandas as pd
+import numpy as np
 import h5py
 datadir = '/Users/carolineharbison/Desktop/GitHub/pydemo/Participant_data/data/Test'
 
 # create a list of all the subject numbers
-nums = [*range(4,34,1)]
-num_strings = [str(x) for x in nums]
-mystring = 'S'
-subjects = [mystring + x for x in num_strings]
-subjects.remove('S10')
+nums = range(4,34)
+subjects = [f"S{x}" for x in nums if x != 10]
 # For loop to get the age of each subject then compile them into a dataframe
 # Some of the .mat files are in hdf format so can't be opened with scipy, this code gets
 # around that
 age_data_list = []
+gender_data_list = []
 for subject in subjects:
     filename = f'{datadir}/{subject}_MDSLTest_B1.mat'
-    print(filename)
     try:
         with h5py.File(filename,'r') as f:
-            data = f['data']
-            individual = data['individual']
-            age = individual['age']
-            age_data=age[:]
+            age_data = f['data']['individual']['age'][:]
             age_data_list.append(age_data)
+            gender = f['data']['individual']['jender'][()]
+            extracted_gender = chr(gender.item())
+            gender_data_list.append(extracted_gender)
     except OSError:
         data = loadmat(filename)
         age = data['data'][0,0]['individual'][0,0]['age']
-        print(age)
         age_data_list.append(age)
+        gender = data['data'][0,0]['individual'][0,0]['jender']
+        gender_data_list.append(gender)
 age_data_list = [int(arr.astype(float)[0,0]) for arr in age_data_list]
-age_df = pd.DataFrame(age_data_list)
-age_df.columns = ["age"]
-print(age_df)
-age_stats=age_df['age'].describe()
+gender_data_list = [x.item() if isinstance(x, np.ndarray) else x for x in gender_data_list]
+print(gender_data_list)
+demographics = pd.DataFrame({'gender': gender_data_list, 'age': age_data_list})
+age_stats=demographics['age'].describe()
+gender_stats=demographics['gender'].describe()
+print(demographics)
 print(age_stats)
+print(gender_stats)
 
 # # First create table of output measures
 # output = S1_test['data'][0,0]['output_test']
