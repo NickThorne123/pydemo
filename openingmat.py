@@ -11,32 +11,31 @@ num_strings = [str(x) for x in nums]
 mystring = 'S'
 subjects = [mystring + x for x in num_strings]
 subjects.remove('S10')
-
 # For loop to get the age of each subject then compile them into a dataframe
+# Some of the .mat files are in hdf format so can't be opened with scipy, this code gets
+# around that
 age_data_list = []
 for subject in subjects:
     filename = f'{datadir}/{subject}_MDSLTest_B1.mat'
-    with h5py.File(filename,'r') as f:
-        data = f['data']
-        individual = data['individual']
-        age = individual['age']
-        age_data=age[:]
-    age_data_list.append(age_data)
-age_df = pd.DataFrame(age_data_list, index=subject)
+    print(filename)
+    try:
+        with h5py.File(filename,'r') as f:
+            data = f['data']
+            individual = data['individual']
+            age = individual['age']
+            age_data=age[:]
+            age_data_list.append(age_data)
+    except OSError:
+        data = loadmat(filename)
+        age = data['data'][0,0]['individual'][0,0]['age']
+        print(age)
+        age_data_list.append(age)
+age_data_list = [int(arr.astype(float)[0,0]) for arr in age_data_list]
+age_df = pd.DataFrame(age_data_list)
+age_df.columns = ["age"]
 print(age_df)
-
-
-
-
-# Some of the .mat files are in hdf format so can't be opened with scipy, this code gets
-# around that
-
-S12_test = h5py.File('/Users/carolineharbison/Desktop/GitHub/pydemo/Participant_data/data/Test/S12_MDSLTest_B1.mat','r')
-data = S12_test['data']
-individual = data['individual']
-age = individual['age']
-age_data = age[:]
-print(age_data)
+age_stats=age_df['age'].describe()
+print(age_stats)
 
 # # First create table of output measures
 # output = S1_test['data'][0,0]['output_test']
