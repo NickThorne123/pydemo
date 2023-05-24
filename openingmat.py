@@ -44,8 +44,7 @@ blocks = range(1,4)
 
 
 # First create a table of outcome (what character they chose versus the correct answer) for each participant
-# then find out what percentage correct each participant had
-# then finally figure out the overall accuracy of the participants for each block.
+# Calculate each participant's accuracy first
 
 outcome_dfs = []
 for subject in subjects:
@@ -56,8 +55,6 @@ for subject in subjects:
                 outcome_data = f['data']['outcome'][:]
                 df = pd.DataFrame(outcome_data)
                 df = df.T
-                # df['Subject'] = subject
-                # df['Block'] = block
                 # outcome_dfs.append(df)
                 
         except OSError:
@@ -66,9 +63,19 @@ for subject in subjects:
             df = pd.DataFrame(outcome)
         df['Subject'] = subject
         df['Block'] = block
-        outcome_dfs.append(df) 
-combined_outcome = pd.concat(outcome_dfs, ignore_index = True)
-print(combined_outcome)       
+        
+        outcome_dfs.append(df)
+      
+            
+# combined_outcome = pd.concat(outcome_dfs, ignore_index = True)
+# combined_outcome.columns = ['Choice', 'Correct', 'Subject', 'Block']
+
+# # calculate accuracy across participants
+combined_outcome['matching'] = combined_outcome.apply(lambda x: x.Choice == x.Correct, axis=1)
+count = (combined_outcome['matching'].value_counts()[True])/5859
+print(count)
+# answer = 77.5% accuracy across participants
+
 
 
 
