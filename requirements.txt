@@ -10,6 +10,7 @@ itsdangerous==2.1.2
 Jinja2==3.1.2
 lazy_loader==0.2
 MarkupSafe==2.1.2
+mat73==0.60
 networkx==3.1
 numpy==1.24.2
 packaging==23.1
